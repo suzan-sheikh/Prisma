@@ -19,7 +19,7 @@ CREATE TABLE "Profiles" (
 -- CreateTable
 CREATE TABLE "users" (
     "id" TEXT NOT NULL,
-    "name" CHAR(255) NOT NULL,
+    "name" VARCHAR(255) NOT NULL,
     "email" TEXT NOT NULL,
     "password" TEXT NOT NULL,
     "activeStatus" "active_status" NOT NULL DEFAULT 'ACTIVE',

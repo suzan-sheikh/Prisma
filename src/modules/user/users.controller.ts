@@ -3,9 +3,6 @@ import httpStatus from "http-status";
 import { userService } from "./user.service";
 import { catchAsync } from "../../utils/catchAsync";
 import { sendResponse } from "../../utils/sendResponse";
-import jwt from "jsonwebtoken";
-import config from "../../config";
-import { jwtUtils } from "../../utils/jwt";
 
 const registerUser = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -24,18 +21,10 @@ const registerUser = catchAsync(
 
 const getMyProfile = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const { accessToken } = req.cookies;
-    const verifiedToken = jwtUtils.verifyToken(
-      accessToken,
-      config.jwt_access_secret,
-    );
-
-    if (typeof verifiedToken === "string") {
-      throw new Error(verifiedToken);
-    }
+    console.log(req.user, "user request");
 
     const profile = await userService.getMyProfileFromDB(
-      verifiedToken.id
+      req.user?.id as string,
     );
 
     sendResponse(res, {
@@ -46,8 +35,6 @@ const getMyProfile = catchAsync(
         profile,
       },
     });
-
-    console.log(verifiedToken);
 
     res.send("get my profile route");
   },

@@ -2,45 +2,76 @@ import { NextFunction, Request, Response, Router } from "express";
 import { userController } from "./users.controller";
 import { jwtUtils } from "../../utils/jwt";
 import config from "../../config";
+import { role } from "../../../generated/prisma/enums";
+import { catchAsync } from "../../utils/catchAsync";
+import { JwtPayload } from "jsonwebtoken";
+import { prisma } from "../../lib/prisma";
 
 const router = Router();
 
+declare global {
+  namespace Express {
+    interface Request {
+      user?: {
+        email: string;
+        name: string;
+        id: string;
+        role: role;
+      };
+    }
+  }
+}
+
 router.post("/register", userController.registerUser);
 
-router.get("/me", (req: Request, res: Response, next: NextFunction) => {
+// auth(role.ADMIN, role.USER) 
 
-    const {accessToken} = req.cookies;
-    console.log(accessToken);
+const auth = (...requiredRole: role[]) => {
+  return catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const token = req.cookies.accessToken ? req.cookies.accessToken : req.headers.authorization?.startsWith("Bearer ") ? req.headers.authorization?.split(" ")[1] :
+    req.headers.authorization;
 
-    const verifiedToken = jwtUtils.verifyToken(accessToken, config.jwt_access_secret);
+    if (!token) {
+      throw new Error("You ar no logged in");
+    }
+    const verifiedToken = jwtUtils.verifyToken(token, config.jwt_access_secret);
+    if (!verifiedToken.success) {
+      throw new Error(verifiedToken.error);
+    }
+    const {email, name, id, role} = verifiedToken.data as JwtPayload;
 
-    if(typeof verifiedToken === "string"){
-        throw new Error(verifiedToken)
+    if(requiredRole.length && !requiredRole.includes(role)){
+        throw new Error("Forbidden access")
     }
 
-    console.log(verifiedToken);
-    const {email, name, id, role} = verifiedToken;
+    const user = await prisma.user.findUnique({
+        where: {
+            id,
+            email,
+            name,
+            role
+        }
+    })
+ 
+    if(!user){
+        throw new Error("User Not Found")
+    }
+    if(user.activeStatus === "BLOCK"){
+        throw new Error("You account has been blocked. please contact support")
+    }    
 
-    const requiredRole = ["USER", "ADMIN", "AUTHOR"]
-
-    if(!requiredRole.includes(role)){
-        return res.status(403).json({
-            success: false,
-            statusCode: 403,
-            message: "Forbidden"
-        })
+    req.user = {
+        email,
+        id,
+        name,
+        role
     }
 
     next()
+  });
+};
 
-
-
-
-
-    
-
-    
-
-}, userController.getMyProfile);
+router.get(
+  "/me", auth(role.ADMIN, role.AUTHOR, role.USER), userController.getMyProfile);
 
 export const userRoutes = router;

@@ -1,11 +1,6 @@
-import { NextFunction, Request, Response, Router } from "express";
+import { Router } from "express";
 import { userController } from "./users.controller";
-import { jwtUtils } from "../../utils/jwt";
-import config from "../../config";
 import { role } from "../../../generated/prisma/enums";
-import { catchAsync } from "../../utils/catchAsync";
-import { JwtPayload } from "jsonwebtoken";
-import { prisma } from "../../lib/prisma";
 import { auth } from "../../middlewares/auth";
 
 const router = Router();
@@ -19,5 +14,9 @@ router.get(
   auth(role.ADMIN, role.AUTHOR, role.USER),
   userController.getMyProfile,
 );
+
+router.put("/my-profile", auth(role.ADMIN, role.USER, role.AUTHOR), userController.updateMyProfile)
+
+
 
 export const userRoutes = router;

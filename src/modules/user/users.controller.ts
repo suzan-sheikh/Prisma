@@ -40,7 +40,25 @@ const getMyProfile = catchAsync(
   },
 );
 
+const updateMyProfile = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+  const userId = req.user?.id as string;
+  const payload = req.body;
+
+  const updateMyProfile = await userService.updateMyProfileInDB(userId, payload)
+      sendResponse(res, {
+      success: true,
+      statusCode: httpStatus.OK,
+      message: "user profile update successfully",
+      data: {
+        updateMyProfile,
+      },
+    });
+
+
+})
+
 export const userController = {
   registerUser,
   getMyProfile,
+  updateMyProfile,
 };

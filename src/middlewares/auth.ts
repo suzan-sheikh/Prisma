@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { role } from "../../generated/prisma/enums";
+import { Role } from "../../generated/prisma/enums";
 import { catchAsync } from "../utils/catchAsync";
 import { jwtUtils } from "../utils/jwt";
 import config from "../config";
@@ -13,13 +13,13 @@ declare global {
         email: string;
         name: string;
         id: string;
-        role: role;
+        role: Role;
       };
     }
   }
 }
 
-export const auth = (...requiredRole: role[]) => {
+export const auth = (...requiredRole: Role[]) => {
   return catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const token = req.cookies.accessToken
       ? req.cookies.accessToken

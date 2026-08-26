@@ -1,0 +1,56 @@
+import { NextFunction, Request, request, Response, response } from "express";
+import { catchAsync } from "../../utils/catchAsync";
+import { postService } from "./post.service";
+import { sendResponse } from "../../utils/sendResponse";
+import httpStatus from "http-status";
+
+const createPost = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    
+    const id = req.user?.id;
+    const payload = req.body;
+    const result = await postService.createPost(payload, id as string);
+    sendResponse(res, {
+      success: true,
+      statusCode: httpStatus.CREATED,
+      message: "Create Post Successfully",
+      data: {
+        result,
+      },
+    });
+  },
+);
+
+const getAllPosts = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {},
+);
+
+const getPostsStatus = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {},
+);
+
+const getMyPosts = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {},
+);
+
+const getPostById = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {},
+);
+
+const updatePost = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {},
+);
+
+const deletePost = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {},
+);
+
+export const postController = {
+  createPost,
+  getAllPosts,
+  getPostsStatus,
+  getMyPosts,
+  getPostById,
+  updatePost,
+  deletePost,
+};
